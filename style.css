@@ -29,17 +29,6 @@ header h1 {
   margin-bottom: 16px;
 }
 
-.category-bar {
-  margin-bottom: 12px;
-  font-size: 0.9rem;
-}
-
-.category-bar select {
-  padding: 6px 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-
 .chat-window {
   background: #fff;
   border: 1px solid #ddd;
@@ -73,7 +62,7 @@ header h1 {
   display: block;
   margin-top: 6px;
   font-size: 0.75rem;
-  color: #5a7;
+  color: #2a7d5a;
 }
 
 .input-area {
@@ -109,4 +98,85 @@ header h1 {
   margin-top: 10px;
   font-size: 0.75rem;
   color: #c0392b;
+}
+
+/* ===== 管理者ページ用 ===== */
+.admin .card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.admin .card h2 {
+  font-size: 1.1rem;
+  color: #1a4f8b;
+  margin-bottom: 8px;
+}
+
+.admin textarea,
+.admin input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+}
+
+.admin button {
+  padding: 8px 16px;
+  background: #1a4f8b;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-right: 6px;
+}
+
+.admin button.danger {
+  background: #c0392b;
+}
+
+.admin button.ok {
+  background: #2a7d5a;
+}
+
+.info-msg {
+  font-size: 0.85rem;
+  color: #2a7d5a;
+  margin-top: 6px;
+}
+
+.list {
+  margin-top: 12px;
+}
+
+.list-item {
+  border: 1px solid #e3e3e3;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: #fafbfc;
+}
+
+.list-item .q {
+  font-weight: bold;
+  color: #1a4f8b;
+}
+
+.list-item .a {
+  margin: 6px 0;
+  white-space: pre-wrap;
+}
+
+.list-item .meta {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.list-item textarea {
+  margin-top: 8px;
 }
