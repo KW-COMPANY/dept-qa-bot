@@ -5,7 +5,6 @@ const API_URL = "https://dept-qa-bot.gmo-k-watanabe.workers.dev";
 const chat = document.getElementById("chat");
 const form = document.getElementById("form");
 const questionEl = document.getElementById("question");
-const categoryEl = document.getElementById("category");
 const sendBtn = document.getElementById("send");
 
 function addMessage(text, role, source) {
@@ -25,7 +24,6 @@ function addMessage(text, role, source) {
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const question = questionEl.value.trim();
-  const category = categoryEl.value;
   if (!question) return;
 
   addMessage(question, "user");
@@ -37,15 +35,16 @@ form.addEventListener("submit", async (e) => {
     const res = await fetch(API_URL + "/ask", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question, category }),
+      body: JSON.stringify({ question }),
     });
 
-    if (!res.ok) {
-      throw new Error("サーバーエラー: " + res.status);
-    }
+    if (!res.ok) throw new Error("サーバーエラー: " + res.status);
 
     const data = await res.json();
-    addMessage(data.answer, "bot", data.source);
+    const src = data.category
+      ? `${data.source}（推定カテゴリ: ${data.category}）`
+      : data.source;
+    addMessage(data.answer, "bot", src);
   } catch (err) {
     addMessage("エラーが発生しました。時間をおいて再度お試しください。", "bot");
     console.error(err);
