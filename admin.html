@@ -1,0 +1,55 @@
+<!-- File: admin.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>管理者ページ｜ナレッジ管理</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container admin">
+    <header>
+      <h1>管理者ページ</h1>
+      <p class="note">ナレッジの追加・ユーザー質問の確定・蓄積ナレッジの管理を行います</p>
+    </header>
+
+    <!-- ログイン -->
+    <section id="login-section" class="card">
+      <h2>ログイン</h2>
+      <input type="password" id="admin-pass" placeholder="管理パスワード" />
+      <button id="login-btn">ログイン</button>
+      <p id="login-msg" class="warning"></p>
+    </section>
+
+    <!-- 管理パネル（ログイン後表示） -->
+    <div id="panel" style="display:none;">
+
+      <!-- ① ナレッジ自由記述追加 -->
+      <section class="card">
+        <h2>① ナレッジを追加（自由記述）</h2>
+        <p class="note">カテゴリ分けは不要です。AIが自動で分類・整理します。</p>
+        <textarea id="kn-text" rows="5" placeholder="例：返品対応は購入後14日以内、レシート必須。送料は当社負担。"></textarea>
+        <button id="kn-add">ナレッジとして登録</button>
+        <p id="kn-msg" class="info-msg"></p>
+      </section>
+
+      <!-- ② ユーザー質問ログ → 回答確定 -->
+      <section class="card">
+        <h2>② ユーザー質問ログ（確定待ち）</h2>
+        <button id="pending-reload">最新を読み込む</button>
+        <div id="pending-list" class="list"></div>
+      </section>
+
+      <!-- ③ 蓄積ナレッジ一覧 -->
+      <section class="card">
+        <h2>③ 蓄積ナレッジ一覧</h2>
+        <button id="kn-reload">一覧を読み込む</button>
+        <div id="kn-list" class="list"></div>
+      </section>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
