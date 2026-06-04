@@ -1,0 +1,112 @@
+/* File: style.css */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Helvetica Neue", Arial, "Hiragino Sans", "Meiryo", sans-serif;
+  background: #f4f6f8;
+  color: #222;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+header h1 {
+  font-size: 1.4rem;
+  color: #1a4f8b;
+}
+
+.note {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.category-bar {
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+
+.category-bar select {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.chat-window {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  height: 420px;
+  overflow-y: auto;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.msg {
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  max-width: 85%;
+  white-space: pre-wrap;
+}
+
+.msg.user {
+  background: #1a4f8b;
+  color: #fff;
+  margin-left: auto;
+}
+
+.msg.bot {
+  background: #eef2f6;
+  color: #222;
+}
+
+.msg .source {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: #5a7;
+}
+
+.input-area {
+  display: flex;
+  gap: 8px;
+}
+
+.input-area textarea {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  resize: vertical;
+  font-size: 0.95rem;
+}
+
+.input-area button {
+  padding: 0 20px;
+  background: #1a4f8b;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.input-area button:disabled {
+  background: #999;
+  cursor: not-allowed;
+}
+
+.warning {
+  margin-top: 10px;
+  font-size: 0.75rem;
+  color: #c0392b;
+}
