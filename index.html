@@ -1,0 +1,47 @@
+<!-- File: index.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>部門ナレッジQ&Aボット</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>部門ナレッジQ&Aボット</h1>
+      <p class="note">業務・商品・販売・利益計算・人事評価に関する質問にお答えします</p>
+    </header>
+
+    <div class="category-bar">
+      <label for="category">カテゴリ:</label>
+      <select id="category">
+        <option value="業務">業務</option>
+        <option value="商品サービス">商品・サービス</option>
+        <option value="販売方法">販売方法</option>
+        <option value="利益計算">利益計算</option>
+        <option value="人事評価">人事評価</option>
+      </select>
+    </div>
+
+    <div id="chat" class="chat-window"></div>
+
+    <form id="form" class="input-area">
+      <textarea
+        id="question"
+        placeholder="質問を入力してください（センシティブ情報は入力しないでください）"
+        rows="2"
+        required
+      ></textarea>
+      <button type="submit" id="send">送信</button>
+    </form>
+
+    <p class="warning">
+      ※ 企業名・個人情報・サービス名などの機密情報は入力しないでください。
+    </p>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
