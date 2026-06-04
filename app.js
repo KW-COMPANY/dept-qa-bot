@@ -1,7 +1,6 @@
 // File: app.js
 
-// ▼ ここをあなたのWorkersのURLに書き換えてください（後述の手順で取得）
-const API_URL = "https://your-worker-name.your-subdomain.workers.dev";
+const API_URL = "https://dept-qa-bot.gmo-k-watanabe.workers.dev";
 
 const chat = document.getElementById("chat");
 const form = document.getElementById("form");
