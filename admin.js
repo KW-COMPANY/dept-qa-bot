@@ -1,4 +1,3 @@
-// File: admin.js
 const API_URL = "https://dept-qa-bot.gmo-k-watanabe.workers.dev";
 
 let adminPass = "";
