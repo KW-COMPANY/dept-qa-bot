@@ -1,3 +1,4 @@
+// File: admin.js
 const API_URL = "https://dept-qa-bot.gmo-k-watanabe.workers.dev";
 
 let adminPass = "";
@@ -25,6 +26,11 @@ async function adminFetch(path, body) {
     throw new Error("サーバーエラー: " + res.status);
   }
   return res.json();
+}
+
+// ローディング用ヘルパー
+function setLoading(el) {
+  el.innerHTML = "<p class='loading'>読み込み中...</p>";
 }
 
 // ===== ログイン =====
@@ -67,7 +73,7 @@ const pendingList = document.getElementById("pending-list");
 document.getElementById("pending-reload").addEventListener("click", loadPending);
 
 async function loadPending() {
-  pendingList.innerHTML = "読み込み中...";
+  setLoading(pendingList);
   try {
     const data = await adminFetch("/admin/list-pending", {});
     if (!data.items || data.items.length === 0) {
@@ -112,7 +118,7 @@ const knList = document.getElementById("kn-list");
 document.getElementById("kn-reload").addEventListener("click", loadKnowledge);
 
 async function loadKnowledge() {
-  knList.innerHTML = "読み込み中...";
+  setLoading(knList);
   try {
     const data = await adminFetch("/admin/list-knowledge", {});
     if (!data.items || data.items.length === 0) {
