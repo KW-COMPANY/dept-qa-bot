@@ -1,3 +1,4 @@
+/* File: style.css */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -54,6 +55,65 @@ header h1::before {
   line-height: 1.6;
 }
 
+/* ヘッダー内：タイトルとクリアボタンを横並びに */
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.clear-btn {
+  padding: 6px 14px;
+  background: #fff;
+  color: #1a4f8b;
+  border: 1.5px solid #d0d8e4;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.clear-btn:hover {
+  background: #f0f4fa;
+  border-color: #1a4f8b;
+}
+
+/* ===== よく使う質問ショートカット ===== */
+.quick-questions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.qq-label {
+  font-size: 0.8rem;
+  color: #778;
+  margin-right: 2px;
+}
+
+.qq-btn {
+  padding: 6px 12px;
+  background: #fff;
+  color: #1a4f8b;
+  border: 1.5px solid #cddaea;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.qq-btn:hover {
+  background: #e8f0fb;
+  transform: translateY(-1px);
+}
+
 /* ===== チャットウィンドウ ===== */
 .chat-window {
   background: #f8fafc;
@@ -91,6 +151,10 @@ header h1::before {
   animation: fadeUp 0.2s ease-out;
 }
 
+.msg.no-anim {
+  animation: none;
+}
+
 @keyframes fadeUp {
   from {
     opacity: 0;
@@ -118,6 +182,17 @@ header h1::before {
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.07);
 }
 
+.msg-text {
+  white-space: pre-wrap;
+}
+
+.msg-time {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.68rem;
+  opacity: 0.6;
+}
+
 .msg .source {
   display: block;
   margin-top: 8px;
@@ -128,11 +203,74 @@ header h1::before {
   font-style: italic;
 }
 
+/* ボットメッセージ下部のツールバー（コピー・評価・再送信） */
+.msg-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.copy-btn,
+.retry-btn {
+  padding: 4px 10px;
+  background: #f0f4fa;
+  color: #1a4f8b;
+  border: 1px solid #d0d8e4;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.copy-btn:hover,
+.retry-btn:hover {
+  background: #e0eaf6;
+}
+
+.fb-btn {
+  padding: 3px 8px;
+  background: #fff;
+  border: 1px solid #e0e6ed;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.fb-btn:hover:not(:disabled) {
+  background: #f0f4fa;
+  transform: translateY(-1px);
+}
+
+.fb-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.fb-thanks {
+  font-size: 0.72rem;
+  color: #2a7d5a;
+}
+
+.loading-bubble {
+  color: #8899aa;
+  font-style: italic;
+}
+
 /* ===== 入力エリア ===== */
 .input-area {
   display: flex;
   gap: 10px;
   align-items: flex-end;
+}
+
+.input-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .input-area textarea {
@@ -158,6 +296,22 @@ header h1::before {
 .input-area textarea::placeholder {
   color: #aab;
   font-size: 0.88rem;
+}
+
+.input-meta {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+#char-count {
+  font-size: 0.72rem;
+  color: #99a;
+}
+
+#char-count.over {
+  color: #c0392b;
+  font-weight: 700;
 }
 
 .input-area button {
@@ -237,7 +391,9 @@ header h1::before {
 }
 
 .admin textarea,
-.admin input[type="password"] {
+.admin input[type="password"],
+.admin input[type="text"],
+.admin select {
   width: 100%;
   padding: 11px 14px;
   border: 1.5px solid #d0d8e4;
@@ -251,7 +407,9 @@ header h1::before {
 }
 
 .admin textarea:focus,
-.admin input[type="password"]:focus {
+.admin input[type="password"]:focus,
+.admin input[type="text"]:focus,
+.admin select:focus {
   outline: none;
   border-color: #1a4f8b;
   box-shadow: 0 0 0 3px rgba(26, 79, 139, 0.1);
@@ -400,6 +558,11 @@ header h1::before {
   box-shadow: 0 0 0 3px rgba(26, 79, 139, 0.1);
 }
 
+.list-item .btn-row {
+  display: flex;
+  gap: 8px;
+}
+
 /* ===== ログインセクション ===== */
 #login-section {
   max-width: 400px;
@@ -413,4 +576,98 @@ header h1::before {
 
 #login-msg.warning::before {
   content: none;
+}
+
+/* ===== 管理画面：統計ダッシュボード ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.stat-card {
+  background: #f8fafc;
+  border: 1px solid #e6ecf4;
+  border-radius: 10px;
+  padding: 14px 16px;
+  text-align: center;
+}
+
+.stat-card-wide {
+  grid-column: 1 / -1;
+  text-align: left;
+}
+
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1a4f8b;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #778;
+  margin-top: 4px;
+}
+
+.stat-sub {
+  font-size: 0.8rem;
+  color: #333;
+  margin-top: 6px;
+  line-height: 1.6;
+}
+
+/* ===== 管理画面：タブ ===== */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 9px 16px;
+  background: #fff;
+  color: #1a4f8b;
+  border: 1.5px solid #d0d8e4;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.tab-btn:hover {
+  background: #f0f4fa;
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #1a4f8b 0%, #2563a8 100%);
+  color: #fff;
+  border-color: #1a4f8b;
+}
+
+/* ===== 管理画面：検索・絞り込みバー ===== */
+.toolbar-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.toolbar-row .search-bar {
+  flex: 1;
+  min-width: 160px;
+  margin-bottom: 0;
+}
+
+.toolbar-row .filter-select {
+  width: auto;
+  min-width: 150px;
+  margin-bottom: 0;
+}
+
+.toolbar-row button {
+  margin-bottom: 0;
 }
