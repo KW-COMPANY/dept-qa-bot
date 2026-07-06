@@ -1,8 +1,7 @@
-// File: app.js
 const API_URL = "https://dept-qa-bot.gmo-k-watanabe.workers.dev";
 const HISTORY_KEY = "ksbot_history_v1";
 const MAX_CHARS = 500;
-const HISTORY_LIMIT = 12; // 会話の保存件数上限（多すぎると送信データが重くなるため）
+const HISTORY_LIMIT = 12; // 会話の保存件数上限
 
 const chat = document.getElementById("chat");
 const form = document.getElementById("form");
