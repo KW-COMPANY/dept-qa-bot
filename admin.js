@@ -1,4 +1,3 @@
-// File: admin.js
 const API_URL = "https://dept-qa-bot.gmo-k-watanabe.workers.dev";
 const CATEGORY_OPTIONS = ["業務", "商品サービス", "販売方法", "利益計算", "人事評価", "その他"];
 
