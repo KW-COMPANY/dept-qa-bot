@@ -1,3 +1,5 @@
+<!-- Output: html -->
+<!-- File: admin.html -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -24,9 +26,24 @@
     <!-- 管理パネル（ログイン後表示） -->
     <div id="panel" style="display:none;">
 
-      <!-- ① ナレッジ自由記述追加 -->
+      <!-- 統計ダッシュボード -->
       <section class="card">
-        <h2>① ナレッジを追加（自由記述）</h2>
+        <h2>状況サマリー</h2>
+        <div id="stats-grid" class="stats-grid">
+          <p class="note">読み込み中...</p>
+        </div>
+      </section>
+
+      <!-- タブ切り替え -->
+      <div class="tabs">
+        <button type="button" class="tab-btn active" data-tab="tab-add">① ナレッジ追加</button>
+        <button type="button" class="tab-btn" data-tab="tab-pending">② 確定待ち質問</button>
+        <button type="button" class="tab-btn" data-tab="tab-list">③ ナレッジ一覧</button>
+      </div>
+
+      <!-- ① ナレッジ自由記述追加 -->
+      <section class="card tab-content" id="tab-add">
+        <h2>ナレッジを追加（自由記述）</h2>
         <p class="note">カテゴリ分けは不要です。AIが自動で分類・整理します。</p>
         <textarea id="kn-text" rows="5" placeholder="例：返品対応は購入後14日以内、レシート必須。送料は当社負担。"></textarea>
         <button id="kn-add">ナレッジとして登録</button>
@@ -34,16 +51,40 @@
       </section>
 
       <!-- ② ユーザー質問ログ → 回答確定 -->
-      <section class="card">
-        <h2>② ユーザー質問ログ（確定待ち）</h2>
-        <button id="pending-reload">最新を読み込む</button>
+      <section class="card tab-content" id="tab-pending" style="display:none;">
+        <h2>ユーザー質問ログ（確定待ち）</h2>
+        <div class="toolbar-row">
+          <button id="pending-reload">最新を読み込む</button>
+          <input type="text" id="pending-search" class="search-bar" placeholder="質問文で検索..." />
+          <select id="pending-filter" class="filter-select">
+            <option value="">すべてのカテゴリ</option>
+            <option value="業務">業務</option>
+            <option value="商品サービス">商品サービス</option>
+            <option value="販売方法">販売方法</option>
+            <option value="利益計算">利益計算</option>
+            <option value="人事評価">人事評価</option>
+            <option value="その他">その他</option>
+          </select>
+        </div>
         <div id="pending-list" class="list"></div>
       </section>
 
       <!-- ③ 蓄積ナレッジ一覧 -->
-      <section class="card">
-        <h2>③ 蓄積ナレッジ一覧</h2>
-        <button id="kn-reload">一覧を読み込む</button>
+      <section class="card tab-content" id="tab-list" style="display:none;">
+        <h2>蓄積ナレッジ一覧</h2>
+        <div class="toolbar-row">
+          <button id="kn-reload">一覧を読み込む</button>
+          <input type="text" id="kn-search" class="search-bar" placeholder="キーワードで検索..." />
+          <select id="kn-filter" class="filter-select">
+            <option value="">すべてのカテゴリ</option>
+            <option value="業務">業務</option>
+            <option value="商品サービス">商品サービス</option>
+            <option value="販売方法">販売方法</option>
+            <option value="利益計算">利益計算</option>
+            <option value="人事評価">人事評価</option>
+            <option value="その他">その他</option>
+          </select>
+        </div>
         <div id="kn-list" class="list"></div>
       </section>
     </div>
