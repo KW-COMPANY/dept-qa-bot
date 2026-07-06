@@ -1,3 +1,5 @@
+<!-- Output: html -->
+<!-- File: index.html -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -9,19 +11,37 @@
 <body>
   <div class="container">
     <header>
-      <h1>KnowStock Bot</h1>
+      <div class="header-row">
+        <h1>KnowStock Bot</h1>
+        <button type="button" id="clear-btn" class="clear-btn" title="会話をリセット">会話をクリア</button>
+      </div>
       <p class="note">部門単位での業務・商品・販売・利益計算・経理関連・人事評価など、何でもお気軽にご質問ください</p>
     </header>
+
+    <div class="quick-questions">
+      <span class="qq-label">よく使う質問：</span>
+      <button type="button" class="qq-btn" data-text="業務について教えてください。">業務</button>
+      <button type="button" class="qq-btn" data-text="商品・サービスについて教えてください。">商品・サービス</button>
+      <button type="button" class="qq-btn" data-text="販売方法について教えてください。">販売方法</button>
+      <button type="button" class="qq-btn" data-text="利益計算の方法を教えてください。">利益計算</button>
+      <button type="button" class="qq-btn" data-text="人事評価の基準を教えてください。">人事評価</button>
+    </div>
 
     <div id="chat" class="chat-window"></div>
 
     <form id="form" class="input-area">
-      <textarea
-        id="question"
-        placeholder="質問を入力してください（センシティブ情報は入力しないでください）"
-        rows="2"
-        required
-      ></textarea>
+      <div class="input-wrap">
+        <textarea
+          id="question"
+          placeholder="質問を入力してください（センシティブ情報は入力しないでください）&#10;Enterで送信 / Shift+Enterで改行"
+          rows="2"
+          maxlength="500"
+          required
+        ></textarea>
+        <div class="input-meta">
+          <span id="char-count">0/500</span>
+        </div>
+      </div>
       <button type="submit" id="send">送信</button>
     </form>
 
