@@ -677,7 +677,7 @@ header h1::before {
   margin-bottom: 0;
 }
 
-/* ===== 追加：タイピング風ローディング（UX改善） ===== */
+/* ===== タイピング風ローディング ===== */
 .typing {
   display: inline-flex;
   align-items: center;
