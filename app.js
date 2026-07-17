@@ -1,356 +1,265 @@
-// File: admin.js
+// File: app.js
 const API_URL = "https://dept-qa-bot.gmo-k-watanabe.workers.dev";
-const CATEGORY_OPTIONS = ["業務", "商品サービス", "販売方法", "利益計算", "人事評価", "その他"];
+const HISTORY_KEY = "ksbot_history_v1";
+const MAX_CHARS = 500;
+const HISTORY_LIMIT = 12; // 会話の保存件数上限
 
-let adminPass = "";
-let pendingCache = [];
-let knowledgeCache = [];
-let lowRatedCache = [];
+const chat = document.getElementById("chat");
+const form = document.getElementById("form");
+const questionEl = document.getElementById("question");
+const sendBtn = document.getElementById("send");
+const charCount = document.getElementById("char-count");
+const clearBtn = document.getElementById("clear-btn");
 
-const loginSection = document.getElementById("login-section");
-const panel = document.getElementById("panel");
-const loginBtn = document.getElementById("login-btn");
-const loginMsg = document.getElementById("login-msg");
-const passInput = document.getElementById("admin-pass");
+let conversation = loadHistory();
+let lastQuestion = "";
+let isSending = false; // 二重送信防止フラグ
 
-// 共通：管理者APIを叩く（パスワードをヘッダーに付与）
-async function adminFetch(path, body) {
-  const res = await fetch(API_URL + path, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Admin-Pass": adminPass,
-    },
-    body: JSON.stringify(body || {}),
-  });
-  if (res.status === 401) {
-    throw new Error("認証エラー：パスワードが違います");
-  }
-  if (!res.ok) {
-    throw new Error("サーバーエラー: " + res.status);
-  }
-  return res.json();
-}
+// ===== 起動時：保存済み会話を復元 =====
+renderAll();
 
-// ローディング用ヘルパー
-function setLoading(el) {
-  el.innerHTML = "<p class='loading'>読み込み中...</p>";
-}
-
-// ===== タブ切り替え =====
-document.querySelectorAll(".tab-btn").forEach((btn) => {
+// ===== よく使う質問ボタン =====
+document.querySelectorAll(".qq-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
-    document.querySelectorAll(".tab-content").forEach((c) => (c.style.display = "none"));
-    btn.classList.add("active");
-    document.getElementById(btn.dataset.tab).style.display = "block";
+    questionEl.value = btn.dataset.text || "";
+    updateCharCount();
+    questionEl.focus();
   });
 });
 
-// ===== ログイン =====
-loginBtn.addEventListener("click", async () => {
-  adminPass = passInput.value.trim();
-  if (!adminPass) {
-    loginMsg.textContent = "パスワードを入力してください";
-    return;
-  }
-  try {
-    await adminFetch("/admin/verify", {});
-    loginSection.style.display = "none";
-    panel.style.display = "block";
-    loadStats();
-    loadPending();
-    loadKnowledge();
-    loadLowRated();
-  } catch (err) {
-    loginMsg.textContent = err.message;
+// ===== 会話クリア =====
+clearBtn.addEventListener("click", () => {
+  if (!confirm("これまでの会話をすべて削除します。よろしいですか？")) return;
+  conversation = [];
+  saveHistory();
+  chat.innerHTML = "";
+});
+
+// ===== 文字数カウント =====
+questionEl.addEventListener("input", updateCharCount);
+function updateCharCount() {
+  const len = questionEl.value.length;
+  charCount.textContent = `${len}/${MAX_CHARS}`;
+  charCount.classList.toggle("over", len >= MAX_CHARS);
+}
+updateCharCount();
+
+// ===== Enterで送信、Shift+Enterで改行 =====
+questionEl.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    form.requestSubmit();
   }
 });
 
-// ===== 統計ダッシュボード =====
-async function loadStats() {
-  const grid = document.getElementById("stats-grid");
-  setLoading(grid);
-  try {
-    const data = await adminFetch("/admin/stats", {});
-    grid.innerHTML = "";
-    const cards = [
-      { label: "蓄積ナレッジ件数", value: data.knowledgeTotal },
-      { label: "確定待ち質問", value: data.pendingTotal },
-      { label: "役に立った 👍", value: data.feedbackUp },
-      { label: "役に立たなかった 👎", value: data.feedbackDown },
-      {
-        label: "満足度",
-        value: data.satisfaction === null || data.satisfaction === undefined ? "—" : data.satisfaction + "%",
-      },
-      { label: "未対応の改善課題", value: data.lowRatedOpen ?? 0 },
-      { label: "学習で改善した回答", value: data.learnedFromLowRated ?? 0 },
-    ];
-    cards.forEach((c) => {
-      const div = document.createElement("div");
-      div.className = "stat-card";
-      div.innerHTML = `<div class="stat-value">${c.value}</div><div class="stat-label">${c.label}</div>`;
-      grid.appendChild(div);
-    });
-
-    const catDiv = document.createElement("div");
-    catDiv.className = "stat-card stat-card-wide";
-    const catLines = Object.entries(data.byCategory || {})
-      .map(([k, v]) => `${k}: ${v}件`)
-      .join(" ／ ");
-    catDiv.innerHTML = `<div class="stat-label">カテゴリ別件数</div><div class="stat-sub">${catLines}</div>`;
-    grid.appendChild(catDiv);
-  } catch (err) {
-    grid.innerHTML = `<p class='warning'>${err.message}</p>`;
-  }
+// ===== メッセージ描画 =====
+function renderAll() {
+  chat.innerHTML = "";
+  conversation.forEach((msg) => renderMessage(msg, false));
+  chat.scrollTop = chat.scrollHeight;
 }
 
-// ===== ① ナレッジ追加 =====
-const knText = document.getElementById("kn-text");
-const knMsg = document.getElementById("kn-msg");
-document.getElementById("kn-add").addEventListener("click", async () => {
-  const text = knText.value.trim();
-  if (!text) return;
-  knMsg.textContent = "登録中...";
-  try {
-    const data = await adminFetch("/admin/add-knowledge", { text });
-    let msg = `登録しました（自動分類カテゴリ: ${data.category}）`;
-    if (data.duplicateWarning) {
-      msg += ` ／ 注意：類似度${data.duplicateScore}の既存ナレッジがあります。重複の可能性をご確認ください。`;
+function renderMessage(msg, animate = true) {
+  const div = document.createElement("div");
+  div.className = "msg " + msg.role + (animate ? "" : " no-anim");
+
+  const textDiv = document.createElement("div");
+  textDiv.className = "msg-text";
+  textDiv.textContent = msg.text;
+  div.appendChild(textDiv);
+
+  const timeSpan = document.createElement("span");
+  timeSpan.className = "msg-time";
+  timeSpan.textContent = formatTime(msg.time);
+  div.appendChild(timeSpan);
+
+  if (msg.role === "bot") {
+    if (msg.source) {
+      const srcSpan = document.createElement("span");
+      srcSpan.className = "source";
+      srcSpan.textContent = "参照: " + msg.source;
+      div.appendChild(srcSpan);
     }
-    knMsg.textContent = msg;
-    knText.value = "";
-    loadKnowledge();
-    loadStats();
-  } catch (err) {
-    knMsg.textContent = err.message;
+
+    const toolbar = document.createElement("div");
+    toolbar.className = "msg-toolbar";
+
+    const copyBtn = document.createElement("button");
+    copyBtn.type = "button";
+    copyBtn.className = "copy-btn";
+    copyBtn.textContent = "コピー";
+    copyBtn.addEventListener("click", () => {
+      navigator.clipboard?.writeText(msg.text).then(() => {
+        copyBtn.textContent = "コピーしました";
+        setTimeout(() => (copyBtn.textContent = "コピー"), 1500);
+      });
+    });
+    toolbar.appendChild(copyBtn);
+
+    if (!msg.isError) {
+      const fbUp = document.createElement("button");
+      fbUp.type = "button";
+      fbUp.className = "fb-btn";
+      fbUp.textContent = "👍";
+      fbUp.title = "役に立った";
+
+      const fbDown = document.createElement("button");
+      fbDown.type = "button";
+      fbDown.className = "fb-btn";
+      fbDown.textContent = "👎";
+      fbDown.title = "役に立たなかった";
+
+      const sendFeedback = async (rating) => {
+        fbUp.disabled = true;
+        fbDown.disabled = true;
+        try {
+          await fetch(API_URL + "/feedback", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              answerId: msg.answerId || null,
+              question: msg.question || "",
+              answer: msg.text,
+              source: msg.source || "",
+              category: msg.category || null,
+              rating,
+            }),
+          });
+        } catch (e) {
+          console.error(e);
+        }
+        const note = document.createElement("span");
+        note.className = "fb-thanks";
+        note.textContent = "フィードバックありがとうございます";
+        toolbar.appendChild(note);
+      };
+
+      fbUp.addEventListener("click", () => sendFeedback("up"));
+      fbDown.addEventListener("click", () => sendFeedback("down"));
+      toolbar.appendChild(fbUp);
+      toolbar.appendChild(fbDown);
+    } else {
+      const retryBtn = document.createElement("button");
+      retryBtn.type = "button";
+      retryBtn.className = "retry-btn";
+      retryBtn.textContent = "再送信";
+      retryBtn.addEventListener("click", () => {
+        if (lastQuestion) submitQuestion(lastQuestion);
+      });
+      toolbar.appendChild(retryBtn);
+    }
+
+    div.appendChild(toolbar);
   }
+
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function formatTime(ts) {
+  const d = new Date(ts || Date.now());
+  return d.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
+}
+
+// ===== 履歴の保存・読み込み =====
+function loadHistory() {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveHistory() {
+  const trimmed = conversation.slice(-HISTORY_LIMIT * 2);
+  conversation = trimmed;
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+// ===== 送信処理 =====
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const question = questionEl.value.trim();
+  if (!question) return;
+  if (isSending) return; // 二重送信防止
+  questionEl.value = "";
+  updateCharCount();
+  submitQuestion(question);
 });
 
-// ===== ② 質問ログの読み込み・確定 =====
-const pendingList = document.getElementById("pending-list");
-const pendingSearch = document.getElementById("pending-search");
-const pendingFilter = document.getElementById("pending-filter");
-document.getElementById("pending-reload").addEventListener("click", loadPending);
-pendingSearch.addEventListener("input", () => renderPending());
-pendingFilter.addEventListener("change", () => renderPending());
+async function submitQuestion(question) {
+  if (isSending) return;
+  isSending = true;
+  lastQuestion = question;
 
-async function loadPending() {
-  setLoading(pendingList);
+  const userMsg = { role: "user", text: question, time: Date.now() };
+  conversation.push(userMsg);
+  saveHistory();
+  renderMessage(userMsg);
+
+  sendBtn.disabled = true;
+  sendBtn.textContent = "考え中...";
+
+  // タイピング風のローディング表示
+  const loadingDiv = document.createElement("div");
+  loadingDiv.className = "msg bot loading-bubble";
+  loadingDiv.innerHTML =
+    '<span class="typing"><span></span><span></span><span></span></span>';
+  chat.appendChild(loadingDiv);
+  chat.scrollTop = chat.scrollHeight;
+
   try {
-    const data = await adminFetch("/admin/list-pending", {});
-    pendingCache = data.items || [];
-    renderPending();
+    const historyForApi = conversation
+      .slice(-HISTORY_LIMIT)
+      .map((m) => ({ role: m.role, text: m.text }));
+
+    const res = await fetch(API_URL + "/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, history: historyForApi }),
+    });
+
+    if (!res.ok) throw new Error("サーバーエラー: " + res.status);
+
+    const data = await res.json();
+    loadingDiv.remove();
+
+    const src = data.category
+      ? `${data.source}（推定カテゴリ: ${data.category}）`
+      : data.source;
+
+    const botMsg = {
+      role: "bot",
+      text: data.answer,
+      source: src,
+      category: data.category || null,
+      answerId: data.answerId || null,
+      question,
+      time: Date.now(),
+    };
+    conversation.push(botMsg);
+    saveHistory();
+    renderMessage(botMsg);
   } catch (err) {
-    pendingList.innerHTML = `<p class='warning'>${err.message}</p>`;
+    loadingDiv.remove();
+    const botMsg = {
+      role: "bot",
+      text: "エラーが発生しました。時間をおいて再度お試しください。",
+      isError: true,
+      time: Date.now(),
+    };
+    conversation.push(botMsg);
+    saveHistory();
+    renderMessage(botMsg);
+    console.error(err);
+  } finally {
+    isSending = false;
+    sendBtn.disabled = false;
+    sendBtn.textContent = "送信";
   }
-}
-
-function renderPending() {
-  const keyword = pendingSearch.value.trim().toLowerCase();
-  const cat = pendingFilter.value;
-  const filtered = pendingCache.filter((item) => {
-    const matchKeyword = !keyword || (item.question || "").toLowerCase().includes(keyword);
-    const matchCat = !cat || item.category === cat;
-    return matchKeyword && matchCat;
-  });
-
-  if (filtered.length === 0) {
-    pendingList.innerHTML = "<p class='note'>該当する確定待ちの質問はありません。</p>";
-    return;
-  }
-  pendingList.innerHTML = "";
-  filtered.forEach((item) => {
-    const div = document.createElement("div");
-    div.className = "list-item";
-    div.innerHTML = `
-      <div class="q">Q: ${escapeHtml(item.question)}</div>
-      <div class="meta">推定カテゴリ: ${escapeHtml(item.category || "未分類")} ／ AI暫定回答:</div>
-      <div class="a">${escapeHtml(item.answer || "")}</div>
-      <textarea rows="4">${escapeHtml(item.answer || "")}</textarea>
-      <button class="ok">この内容でナレッジ確定</button>
-      <button class="danger">削除</button>
-    `;
-    const textarea = div.querySelector("textarea");
-    div.querySelector(".ok").addEventListener("click", async () => {
-      await adminFetch("/admin/confirm", {
-        id: item.id,
-        question: item.question,
-        answer: textarea.value.trim(),
-      });
-      loadPending();
-      loadKnowledge();
-      loadStats();
-    });
-    div.querySelector(".danger").addEventListener("click", async () => {
-      await adminFetch("/admin/delete-pending", { id: item.id });
-      loadPending();
-      loadStats();
-    });
-    pendingList.appendChild(div);
-  });
-}
-
-// ===== ③ 蓄積ナレッジ一覧 =====
-const knList = document.getElementById("kn-list");
-const knSearch = document.getElementById("kn-search");
-const knFilter = document.getElementById("kn-filter");
-document.getElementById("kn-reload").addEventListener("click", loadKnowledge);
-knSearch.addEventListener("input", () => renderKnowledge());
-knFilter.addEventListener("change", () => renderKnowledge());
-
-async function loadKnowledge() {
-  setLoading(knList);
-  try {
-    const data = await adminFetch("/admin/list-knowledge", {});
-    knowledgeCache = data.items || [];
-    renderKnowledge();
-  } catch (err) {
-    knList.innerHTML = `<p class='warning'>${err.message}</p>`;
-  }
-}
-
-function renderKnowledge() {
-  const keyword = knSearch.value.trim().toLowerCase();
-  const cat = knFilter.value;
-  const filtered = knowledgeCache.filter((item) => {
-    const haystack = `${item.question || ""} ${item.answer || ""} ${item.text || ""}`.toLowerCase();
-    const matchKeyword = !keyword || haystack.includes(keyword);
-    const matchCat = !cat || item.category === cat;
-    return matchKeyword && matchCat;
-  });
-
-  if (filtered.length === 0) {
-    knList.innerHTML = "<p class='note'>該当するナレッジはありません。</p>";
-    return;
-  }
-  knList.innerHTML = "";
-  filtered.forEach((item) => {
-    const div = document.createElement("div");
-    div.className = "list-item";
-    const bodyText = item.answer || item.text || "";
-    const categoryOptionsHtml = CATEGORY_OPTIONS.map(
-      (c) => `<option value="${c}" ${c === item.category ? "selected" : ""}>${c}</option>`
-    ).join("");
-
-    div.innerHTML = `
-      <div class="q">[${escapeHtml(item.category || "未分類")}]${item.fromLowRated ? " 🔧改善由来" : ""} ${escapeHtml(item.question || "（記述ナレッジ）")}</div>
-      <div class="a">${escapeHtml(bodyText)}</div>
-      <div class="meta">登録: ${new Date(item.createdAt).toLocaleString()}</div>
-      <textarea rows="4" class="edit-body">${escapeHtml(bodyText)}</textarea>
-      <select class="edit-category">${categoryOptionsHtml}</select>
-      <div class="btn-row">
-        <button class="ok edit-save">更新</button>
-        <button class="danger">削除</button>
-      </div>
-    `;
-    const editBody = div.querySelector(".edit-body");
-    const editCategory = div.querySelector(".edit-category");
-
-    div.querySelector(".edit-save").addEventListener("click", async () => {
-      const payload = { id: item.id, category: editCategory.value };
-      if (item.question) {
-        payload.question = item.question;
-        payload.answer = editBody.value.trim();
-      } else {
-        payload.text = editBody.value.trim();
-        payload.answer = editBody.value.trim();
-      }
-      await adminFetch("/admin/update-knowledge", payload);
-      loadKnowledge();
-      loadStats();
-    });
-
-    div.querySelector(".danger").addEventListener("click", async () => {
-      await adminFetch("/admin/delete-knowledge", { id: item.id });
-      loadKnowledge();
-      loadStats();
-    });
-    knList.appendChild(div);
-  });
-}
-
-// ===== ④ 改善対象（低評価👎） =====
-const lowRatedList = document.getElementById("lowrated-list");
-const lowRatedSearch = document.getElementById("lowrated-search");
-const lowRatedFilter = document.getElementById("lowrated-filter");
-document.getElementById("lowrated-reload").addEventListener("click", loadLowRated);
-lowRatedSearch.addEventListener("input", () => renderLowRated());
-lowRatedFilter.addEventListener("change", () => renderLowRated());
-
-async function loadLowRated() {
-  setLoading(lowRatedList);
-  try {
-    const data = await adminFetch("/admin/list-lowrated", {});
-    lowRatedCache = data.items || [];
-    renderLowRated();
-  } catch (err) {
-    lowRatedList.innerHTML = `<p class='warning'>${err.message}</p>`;
-  }
-}
-
-function renderLowRated() {
-  const keyword = lowRatedSearch.value.trim().toLowerCase();
-  const state = lowRatedFilter.value;
-  const filtered = lowRatedCache.filter((item) => {
-    const matchKeyword = !keyword || (item.question || "").toLowerCase().includes(keyword);
-    let matchState = true;
-    if (state === "open") matchState = !item.resolved;
-    if (state === "resolved") matchState = !!item.resolved;
-    return matchKeyword && matchState;
-  });
-
-  if (filtered.length === 0) {
-    lowRatedList.innerHTML = "<p class='note'>該当する改善対象はありません。</p>";
-    return;
-  }
-  lowRatedList.innerHTML = "";
-  filtered.forEach((item) => {
-    const div = document.createElement("div");
-    div.className = "list-item";
-    div.innerHTML = `
-      <div class="q">Q: ${escapeHtml(item.question || "（質問記録なし）")}</div>
-      <div class="meta">
-        カテゴリ: ${escapeHtml(item.category || "未分類")} ／
-        状態: ${item.resolved ? "✅ 改善済み" : "⏳ 未対応"} ／
-        評価日: ${item.createdAt ? new Date(item.createdAt).toLocaleString() : "-"}
-      </div>
-      <div class="meta">👎が付いた元の回答:</div>
-      <div class="a">${escapeHtml(item.answer || "")}</div>
-      <div class="meta">改善版の回答（この内容で登録すると次回以降に反映されます）:</div>
-      <textarea rows="4" class="improve-body" placeholder="より具体的で実務に役立つ改善版の回答を入力してください">${escapeHtml(item.answer || "")}</textarea>
-      <div class="btn-row">
-        <button class="ok resolve-btn"${item.resolved ? " disabled" : ""}>改善版をナレッジに登録</button>
-        <button class="danger delete-fb-btn">この記録を削除</button>
-      </div>
-    `;
-    const improveBody = div.querySelector(".improve-body");
-
-    div.querySelector(".resolve-btn").addEventListener("click", async () => {
-      const improved = improveBody.value.trim();
-      if (!improved) return;
-      await adminFetch("/admin/resolve-lowrated", {
-        id: item.id,
-        question: item.question || "",
-        answer: improved,
-      });
-      loadLowRated();
-      loadKnowledge();
-      loadStats();
-    });
-
-    div.querySelector(".delete-fb-btn").addEventListener("click", async () => {
-      await adminFetch("/admin/delete-feedback", { id: item.id });
-      loadLowRated();
-      loadStats();
-    });
-    lowRatedList.appendChild(div);
-  });
-}
-
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
 }
