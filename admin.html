@@ -1,3 +1,4 @@
+<!-- Output: html -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -10,7 +11,7 @@
   <div class="container admin">
     <header>
       <h1>管理者ページ</h1>
-      <p class="note">ナレッジの追加・ユーザー質問の確定・蓄積ナレッジの管理を行います</p>
+      <p class="note">ナレッジの追加・ユーザー質問の確定・蓄積ナレッジの管理・回答品質の改善を行います</p>
     </header>
 
     <!-- ログイン -->
@@ -26,7 +27,7 @@
 
       <!-- 統計ダッシュボード -->
       <section class="card">
-        <h2>状況サマリー</h2>
+        <h2>状況サマリー（Closed Loop 指標）</h2>
         <div id="stats-grid" class="stats-grid">
           <p class="note">読み込み中...</p>
         </div>
@@ -37,6 +38,7 @@
         <button type="button" class="tab-btn active" data-tab="tab-add">① ナレッジ追加</button>
         <button type="button" class="tab-btn" data-tab="tab-pending">② 確定待ち質問</button>
         <button type="button" class="tab-btn" data-tab="tab-list">③ ナレッジ一覧</button>
+        <button type="button" class="tab-btn" data-tab="tab-lowrated">④ 改善対象（👎）</button>
       </div>
 
       <!-- ① ナレッジ自由記述追加 -->
@@ -84,6 +86,25 @@
           </select>
         </div>
         <div id="kn-list" class="list"></div>
+      </section>
+
+      <!-- ④ 改善対象（低評価👎の回答） -->
+      <section class="card tab-content" id="tab-lowrated" style="display:none;">
+        <h2>改善対象：役に立たなかった回答（👎）</h2>
+        <p class="note">
+          ここに集まった回答を改善して「改善済みナレッジ」に登録すると、
+          次回以降のAIが同じ失敗を避けて回答するようになります（学習ループ）。
+        </p>
+        <div class="toolbar-row">
+          <button id="lowrated-reload">最新を読み込む</button>
+          <input type="text" id="lowrated-search" class="search-bar" placeholder="質問文で検索..." />
+          <select id="lowrated-filter" class="filter-select">
+            <option value="">すべての状態</option>
+            <option value="open">未対応のみ</option>
+            <option value="resolved">改善済みのみ</option>
+          </select>
+        </div>
+        <div id="lowrated-list" class="list"></div>
       </section>
     </div>
   </div>
