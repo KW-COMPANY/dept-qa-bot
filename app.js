@@ -1,4 +1,3 @@
-// File: app.js
 const API_URL = "https://dept-qa-bot.gmo-k-watanabe.workers.dev";
 const HISTORY_KEY = "ksbot_history_v1";
 const MAX_CHARS = 500;
